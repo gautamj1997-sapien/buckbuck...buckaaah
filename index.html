@@ -1,326 +1,312 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐓 Chicken vs Crocodiles 🐊</title>
-<style>
-  body {
-    font-family: sans-serif;
-    background: linear-gradient(to bottom, #87cefa, #fffacd);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    height: 100vh;
-    margin: 0;
-    overflow: hidden;
-  }
-  h1 { margin: 10px; }
-  #gameArea {
-    position: relative;
-    width: 300px;
-    height: 500px;
-    border: 2px solid #333;
-    background: #87cefa;
-    overflow: hidden;
-    border-radius: 15px;
-  }
-  #nest {
-    position: absolute;
-    width: 80px;
-    height: 40px;
-    bottom: 400px;
-    left: 110px;
-    text-align: center;
-    font-size: 2em;
-  }
-  .chicken {
-    position: absolute;
-    bottom: 10px;
-    left: 130px;
-    font-size: 2em;
-    transition: left 0.1s, bottom 0.3s;
-    opacity: 0;
-  }
-  .stone {
-    position: absolute;
-    width: 60px;
-    height: 20px;
-    background: #654321;
-    border-radius: 5px;
-  }
-  .croc {
-    position: absolute;
-    width: 60px;
-    height: 20px;
-    background: green;
-    border-radius: 5px;
-    font-size: 1.2em;
-    text-align: center;
-    line-height: 20px;
-    color: white;
-  }
-  #scoreBoard {
-    margin-top: 5px;
-    font-size: 1.2em;
-    font-weight: bold;
-  }
-  #message {
-    margin-top: 5px;
-    font-size: 1em;
-    color: #ff4500;
-    text-align: center;
-  }
-  #countdown {
-    position: absolute;
-    top: 200px;
-    width: 100%;
-    text-align: center;
-    font-size: 2em;
-    font-weight: bold;
-    color: #ff0000;
-    display: none;
-  }
-  .bird {
-    position: absolute;
-    top: 50px;
-    font-size: 1.5em;
-    animation: fly 18s linear infinite;
-    opacity: 0.7;
-  }
-  @keyframes fly {
-    0% { left: -50px; top: 50px; transform: scaleX(1); }
-    50% { top: 70px; }
-    100% { left: 350px; top: 50px; transform: scaleX(1); }
-  }
-  canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chicken vs Crocodiles</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #87ceeb, #f0f8ff);
+      overflow: hidden;
+    }
+    #container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+    #instructions {
+      width: 25%;
+      background: #fff8dc;
+      padding: 20px;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    #gameArea {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #228b22, #006400);
+    }
+    .stone {
+      width: 60px;
+      height: 20px;
+      background: #a0522d;
+      position: absolute;
+      border-radius: 8px;
+    }
+    .croc {
+      width: 60px;
+      height: 30px;
+      background: green;
+      position: absolute;
+      border-radius: 20px;
+    }
+    #chicken {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      background: url('https://i.imgur.com/ht4nZ4z.png') no-repeat center/contain;
+    }
+    #message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      color: white;
+      text-shadow: 2px 2px 4px black;
+      display: none;
+      text-align: center;
+    }
+    #countdown {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3em;
+      color: yellow;
+      text-shadow: 2px 2px 6px black;
+    }
+    canvas.confetti {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+    /* Mobile controls */
+    #controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 10;
+    }
+    .btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      font-size: 1.5em;
+      font-weight: bold;
+      background: #ffcc00;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
+    .btn:active {
+      background: #ffaa00;
+    }
+  </style>
 </head>
 <body>
+  <div id="container">
+    <div id="instructions">
+      <h2>🐔 Chicken vs Crocodiles 🐊</h2>
+      <p>Your mission: Help the chicken cross the stream without getting eaten!</p>
+      <ul>
+        <li>➡️ Use buttons (or arrow keys) to move.</li>
+        <li>⬆️ Jump to the next stone.</li>
+        <li>Avoid crocodiles as they move.</li>
+        <li>Reach the other side to win 🏆.</li>
+      </ul>
+      <p><b>Pro Tip:</b> Take your time. Winner gets chicken dinner 🤤🍗</p>
+    </div>
+    <div id="gameArea">
+      <div id="countdown">Ready...</div>
+      <div id="chicken"></div>
+      <div id="message"></div>
+      <canvas class="confetti"></canvas>
+      <div id="controls">
+        <button class="btn" id="left">⬅️</button>
+        <button class="btn" id="jump">⬆️</button>
+        <button class="btn" id="right">➡️</button>
+      </div>
+    </div>
+  </div>
 
-<h1>🐓 Chicken vs Crocodiles 🐊</h1>
-<div id="gameArea">
-  <div class="bird">🐦</div>
-  <div id="nest">🥚</div>
-  <div class="chicken" id="chicken">🐓</div>
-  <div id="countdown"></div>
-</div>
-<div id="scoreBoard">Score: 0</div>
-<div id="message"></div>
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const chicken = document.getElementById("chicken");
+    const message = document.getElementById("message");
+    const countdown = document.getElementById("countdown");
+    const confettiCanvas = document.querySelector(".confetti");
+    const ctx = confettiCanvas.getContext("2d");
 
-<!-- Background forest sound (subtle loop) -->
-<audio id="bgMusic" src="https://www.fesliyanstudios.com/play-mp3/387" loop></audio>
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
 
-<!-- Celebration sound -->
-<audio id="celebrationMusic" src="https://assets.mixkit.co/music/preview/mixkit-fairy-win-2016.mp3"></audio>
+    let stones = [];
+    let crocs = [];
+    let gameStarted = false;
 
-<canvas id="confettiCanvas"></canvas>
-
-<script>
-const gameArea = document.getElementById('gameArea');
-const chicken = document.getElementById('chicken');
-const nest = document.getElementById('nest');
-const countdownEl = document.getElementById('countdown');
-const scoreBoard = document.getElementById('scoreBoard');
-const message = document.getElementById('message');
-const music = document.getElementById('celebrationMusic');
-const bgMusic = document.getElementById('bgMusic');
-const canvas = document.getElementById('confettiCanvas');
-const ctx = canvas.getContext('2d');
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let chickenPos = 130;
-let score = 0;
-let stones = [];
-let crocs = [];
-let gameOver = false;
-let level = 1;
-let crocSpeed = 2;
-let crocCount = 3;
-let gameStarted = false;
-
-// --- Create stones ---
-for (let i = 0; i < 15; i++) {
-  const stone = document.createElement('div');
-  stone.classList.add('stone');
-  let left = Math.random() * 240;
-  stone.style.left = left + 'px';
-  stone.style.bottom = (i * 30 + 40) + 'px';
-  gameArea.appendChild(stone);
-  stones.push(stone);
-}
-
-// --- Spawn crocodiles ---
-function spawnCrocs(count) {
-  crocs.forEach(c => gameArea.removeChild(c.el));
-  crocs = [];
-  for (let i = 0; i < count; i++) {
-    const croc = document.createElement('div');
-    croc.classList.add('croc');
-    croc.style.left = Math.random() * 240 + 'px';
-    croc.style.bottom = (i * 30 + 60) + 'px';
-    croc.innerText = '🐊';
-    gameArea.appendChild(croc);
-    crocs.push({el: croc, dir: Math.random() < 0.5 ? 1 : -1});
-  }
-}
-
-// --- Intro animation: Egg cracks and chicken jumps ---
-function startIntro() {
-  nest.innerText = '🥚';  
-  setTimeout(() => {
-    nest.innerText = '🥚💥'; // Egg cracking effect
-  }, 800);
-  setTimeout(() => {
-    nest.style.display = 'none';
-    chicken.style.opacity = 1;
-    chicken.style.bottom = '400px';
-    jumpToStart();
-  }, 1600);
-}
-
-// --- Chicken jumps down ---
-function jumpToStart() {
-  let bottom = 400;
-  const jumpInterval = setInterval(() => {
-    bottom -= 20;
-    if(bottom <= 10) {
-      bottom = 10;
-      clearInterval(jumpInterval);
-      startCountdown();
+    // Create stones spaced out
+    function createStones() {
+      const total = 12;
+      for (let i = 0; i < total; i++) {
+        const stone = document.createElement("div");
+        stone.classList.add("stone");
+        stone.style.left = `${100 + (i % 4) * 80}px`;
+        stone.style.top = `${gameArea.clientHeight - (i+1)*60}px`;
+        gameArea.appendChild(stone);
+        stones.push(stone);
+      }
     }
-    chicken.style.bottom = bottom + 'px';
-  }, 80);
-}
 
-// --- Countdown before game start ---
-function startCountdown() {
-  let count = ['Ready', 'Steady', 'Go!'];
-  let idx = 0;
-  countdownEl.style.display = 'block';
-  const countdownInterval = setInterval(() => {
-    countdownEl.innerText = count[idx];
-    idx++;
-    if(idx >= count.length) {
-      clearInterval(countdownInterval);
-      countdownEl.style.display = 'none';
-      gameStarted = true;
-      bgMusic.volume = 0.3; // subtle
-      bgMusic.play();
-      spawnCrocs(crocCount);
-      moveCrocs();
-      checkScore();
+    // Create spaced crocodiles
+    function createCrocs() {
+      for (let i = 0; i < 6; i++) {
+        const croc = document.createElement("div");
+        croc.classList.add("croc");
+        croc.style.top = `${gameArea.clientHeight - (i+2)*120}px`;
+        croc.style.left = i % 2 === 0 ? "0px" : "200px";
+        gameArea.appendChild(croc);
+        crocs.push({el: croc, dir: i % 2 === 0 ? 1 : -1});
+      }
     }
-  }, 1000);
-}
 
-// --- Move chicken ---
-document.addEventListener('keydown', e => {
-  if(!gameStarted || gameOver) return;
-  if(e.key === 'ArrowLeft' && chickenPos > 0) chickenPos -= 20;
-  if(e.key === 'ArrowRight' && chickenPos < 240) chickenPos += 20;
-  chicken.style.left = chickenPos + 'px';
-});
-
-// --- Move crocodiles ---
-function moveCrocs() {
-  if(gameOver || !gameStarted) return;
-  crocs.forEach(c => {
-    let left = parseFloat(c.el.style.left);
-    left += c.dir * crocSpeed;
-    if(left < 0 || left > 240) c.dir *= -1;
-    c.el.style.left = left + 'px';
-
-    if(Math.abs(left - chickenPos) < 30 && Math.abs(parseFloat(c.el.style.bottom) - parseFloat(chicken.style.bottom)) < 20) {
-      gameOver = true;
-      message.innerText = "💀 Oops! Crocodile got the chicken!";
-      bgMusic.pause();
+    // Move crocodiles
+    function moveCrocs() {
+      crocs.forEach(c => {
+        let left = parseInt(c.el.style.left);
+        left += c.dir * 2;
+        if (left < 0 || left > gameArea.clientWidth - 60) {
+          c.dir *= -1;
+        }
+        c.el.style.left = `${left}px`;
+      });
     }
-  });
-  if(!gameOver) requestAnimationFrame(moveCrocs);
-}
 
-// --- Confetti animation ---
-const confettiParticles = [];
-function createConfetti() {
-  for(let i=0; i<200; i++){
-    confettiParticles.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height - canvas.height,
-      r: Math.random() * 6 + 4,
-      d: Math.random() * 10 + 5,
-      color: `hsl(${Math.random()*360}, 100%, 50%)`,
-      tilt: Math.random()*10 - 10
+    // Confetti celebration
+    let particles = [];
+    function createConfetti() {
+      for (let i = 0; i < 100; i++) {
+        particles.push({
+          x: Math.random() * confettiCanvas.width,
+          y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+          r: Math.random() * 4 + 1,
+          d: Math.random() * 100,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+          tilt: Math.floor(Math.random() * 5) - 5
+        });
+      }
+    }
+    function drawConfetti() {
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.fillStyle = p.color;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2, true);
+        ctx.fill();
+      });
+      updateConfetti();
+    }
+    function updateConfetti() {
+      particles.forEach(p => {
+        p.y += Math.cos(p.d) + 1 + p.r/2;
+        p.x += Math.sin(0.5) * 2;
+        if (p.y > confettiCanvas.height) {
+          p.y = -10;
+          p.x = Math.random() * confettiCanvas.width;
+        }
+      });
+    }
+
+    // Player control
+    let x = 120, y = gameArea.clientHeight - 40;
+    chicken.style.left = x + "px";
+    chicken.style.top = y + "px";
+
+    function moveLeft() {
+      x -= 20;
+      updateChicken();
+    }
+    function moveRight() {
+      x += 20;
+      updateChicken();
+    }
+    function jumpUp() {
+      y -= 60;
+      updateChicken();
+      checkWin();
+    }
+    function updateChicken() {
+      chicken.style.left = x + "px";
+      chicken.style.top = y + "px";
+    }
+
+    // Controls for keyboard
+    document.addEventListener("keydown", (e) => {
+      if (!gameStarted) return;
+      if (e.key === "ArrowLeft") moveLeft();
+      if (e.key === "ArrowRight") moveRight();
+      if (e.key === "ArrowUp") jumpUp();
     });
-  }
-}
-function drawConfetti() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  confettiParticles.forEach(p => {
-    ctx.beginPath();
-    ctx.lineWidth = p.r / 2;
-    ctx.strokeStyle = p.color;
-    ctx.moveTo(p.x + p.tilt, p.y);
-    ctx.lineTo(p.x + p.tilt, p.y + p.r);
-    ctx.stroke();
-    p.y += p.d;
-    if(p.y > canvas.height) p.y = -10;
-  });
-  if(!gameOver) requestAnimationFrame(drawConfetti);
-}
 
-// --- Score tracking and progressive difficulty ---
-function checkScore() {
-  if(!gameStarted || gameOver) return;
-  let chickenBottom = parseFloat(chicken.style.bottom);
+    // Controls for buttons
+    document.getElementById("left").addEventListener("click", () => { if (gameStarted) moveLeft(); });
+    document.getElementById("right").addEventListener("click", () => { if (gameStarted) moveRight(); });
+    document.getElementById("jump").addEventListener("click", () => { if (gameStarted) jumpUp(); });
 
-  stones.forEach(stone => {
-    let stoneBottom = parseFloat(stone.style.bottom);
-    if(Math.abs(chickenBottom - stoneBottom) < 20) {
-      score = stoneBottom;
-      scoreBoard.innerText = "Score: " + Math.round(score/10);
+    function checkCollision() {
+      crocs.forEach(c => {
+        const cx = parseInt(c.el.style.left);
+        const cy = parseInt(c.el.style.top);
+        if (x < cx + 60 && x + 40 > cx && y < cy + 30 && y + 40 > cy) {
+          endGame(false);
+        }
+      });
     }
-  });
 
-  // Level up
-  if(chickenBottom > level * 30) {
-    level++;
-    crocSpeed += 0.5;
-    if(level % 3 === 0) crocCount++;
-    spawnCrocs(crocCount);
-
-    if(level === 5) {
-      message.innerText = "🔥 Winner gets Chicken dinner 🤤🤤🤤";
-    } else {
-      message.innerText = "⚡ You're now getting dangerously close! Level " + level;
+    function checkWin() {
+      if (y < 20) {
+        endGame(true);
+      }
     }
-    setTimeout(()=>message.innerText="", 2000);
-  }
 
-  // Winning condition
-  if(chickenBottom >= 430) {
-    gameOver = true;
-    message.innerText = "🎉 Chicken safely crossed the river! Well done!";
-    bgMusic.pause();
-    music.play();
-    createConfetti();
-    drawConfetti();
-  }
+    function endGame(win) {
+      gameStarted = false;
+      if (win) {
+        message.innerText = "🎉 You Win! Chicken Dinner 🍗🤤";
+        createConfetti();
+        setInterval(drawConfetti, 20);
+      } else {
+        message.innerText = "💀 Oops! The crocs got you!";
+      }
+      message.style.display = "block";
+    }
 
-  if(!gameOver) requestAnimationFrame(checkScore);
-}
+    function gameLoop() {
+      if (gameStarted) {
+        moveCrocs();
+        checkCollision();
+      }
+      requestAnimationFrame(gameLoop);
+    }
 
-// --- Start the game ---
-startIntro();
+    // Countdown intro
+    function startCountdown() {
+      let steps = ["Ready...", "Steady...", "Go!"];
+      let i = 0;
+      let interval = setInterval(() => {
+        countdown.innerText = steps[i];
+        i++;
+        if (i === steps.length) {
+          clearInterval(interval);
+          countdown.style.display = "none";
+          gameStarted = true;
+        }
+      }, 1000);
+    }
 
-</script>
+    // Init
+    createStones();
+    createCrocs();
+    gameLoop();
+    startCountdown();
+  </script>
 </body>
 </html>
