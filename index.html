@@ -1,1 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chicken vs Crocodiles</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #87ceeb, #f0f8ff);
+      overflow: hidden;
+    }
+    #container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+    #instructions {
+      width: 25%;
+      background: #fff8dc;
+      padding: 20px;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    #gameArea {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #228b22, #006400);
+    }
+    .stone {
+      width: 60px;
+      height: 20px;
+      background: #a0522d;
+      position: absolute;
+      border-radius: 8px;
+    }
+    .croc {
+      width: 60px;
+      height: 30px;
+      background: green;
+      position: absolute;
+      border-radius: 20px;
+    }
+    #chicken {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      background: url('https://i.imgur.com/ht4nZ4z.png') no-repeat center/contain;
+    }
+    #message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      color: white;
+      text-shadow: 2px 2px 4px black;
+      display: none;
+      text-align: center;
+    }
+    #resetBtn {
+      display: none;
+      position: absolute;
+      top: 65%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      font-size: 1.2em;
+      background: #ff4500;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #countdown {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3em;
+      color: yellow;
+      text-shadow: 2px 2px 6px black;
+    }
+    canvas.confetti {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+    /* Mobile controls */
+    #controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 10;
+    }
+    .btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      font-size: 1.5em;
+      font-weight: bold;
+      background: #ffcc00;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
+    .btn:active {
+      background: #ffaa00;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="instructions">
+      <h2>🐔 Chicken vs Crocodiles 🐊</h2>
+      <p>Your mission: Help the chicken cross the stream without getting eaten!</p>
+      <ul>
+        <li>➡️ Use buttons (or arrow keys) to move.</li>
+        <li>⬆️ Jump to the next stone.</li>
+        <li>Avoid crocodiles as they move.</li>
+        <li>Reach the other side to win 🏆.</li>
+      </ul>
+      <p><b>Pro Tip:</b> Take your time. Winner gets chicken dinner 🤤🍗</p>
+    </div>
+    <div id="gameArea">
+      <div id="countdown">Ready...</div>
+      <div id="chicken"></div>
+      <div id="message"></div>
+      <button id="resetBtn">🔄 Restart</button>
+      <canvas class="confetti"></canvas>
+      <div id="controls">
+        <button class="btn" id="left">⬅️</button>
+        <button class="btn" id="jump">⬆️</button>
+        <button class="btn" id="right">➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const chicken = document.getElementById("chicken");
+    const message = document.getElementById("message");
+    const countdown = document.getElementById("countdown");
+    const resetBtn = document.getElementById("resetBtn");
+    const confettiCanvas = document.querySelector(".confetti");
+    const ctx = confettiCanvas.getContext("2d");
+
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+
+    let stones = [];
+    let crocs = [];
+    let gameStarted = false;
+    let particles = [];
+    let x, y;
+
+    function initGame() {
+      gameArea.querySelectorAll(".stone, .croc").forEach(el => el.remove());
+      stones = [];
+      crocs = [];
+      particles = [];
+      message.style.display = "none";
+      resetBtn.style.display = "none";
+      x = 120;
+      y = gameArea.clientHeight - 40;
+      chicken.style.left = x + "px";
+      chicken.style.top = y + "px";
+      createStones();
+      createCrocs();
+      startCountdown();
+    }
+
+    // Create stones
+    function createStones() {
+      const total = 12;
+      for (let i = 0; i < total; i++) {
+        const stone = document.createElement("div");
+        stone.classList.add("stone");
+        stone.style.left = `${100 + (i % 4) * 80}px`;
+        stone.style.top = `${gameArea.clientHeight - (i+1)*60}px`;
+        gameArea.appendChild(stone);
+        stones.push(stone);
+      }
+    }
+
+    // Create crocs
+    function createCrocs() {
+      for (let i = 0; i < 6; i++) {
+        const croc = document.createElement("div");
+        croc.classList.add("croc");
+        croc.style.top = `${gameArea.clientHeight - (i+2)*120}px`;
+        croc.style.left = i % 2 === 0 ? "0px" : "200px";
+        gameArea.appendChild(croc);
+        crocs.push({el: croc, dir: i % 2 === 0 ? 1 : -1});
+      }
+    }
+
+    function moveCrocs() {
+      crocs.forEach(c => {
+        let left = parseInt(c.el.style.left);
+        left += c.dir * 2;
+        if (left < 0 || left > gameArea.clientWidth - 60) {
+          c.dir *= -1;
+        }
+        c.el.style.left = `${left}px`;
+      });
+    }
+
+    function createConfetti() {
+      for (let i = 0; i < 100; i++) {
+        particles.push({
+          x: Math.random() * confettiCanvas.width,
+          y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+          r: Math.random() * 4 + 1,
+          d: Math.random() * 100,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`
+        });
+      }
+    }
+    function drawConfetti() {
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.fillStyle = p.color;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2, true);
+        ctx.fill();
+      });
+      updateConfetti();
+    }
+    function updateConfetti() {
+      particles.forEach(p => {
+        p.y += 2;
+        if (p.y > confettiCanvas.height) {
+          p.y = -10;
+          p.x = Math.random() * confettiCanvas.width;
+        }
+      });
+    }
+
+    function moveLeft() { x -= 20; updateChicken(); }
+    function moveRight() { x += 20; updateChicken(); }
+    function jumpUp() { y -= 60; updateChicken(); checkWin(); }
+    function updateChicken() {
+      chicken.style.left = x + "px";
+      chicken.style.top = y + "px";
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (!gameStarted) return;
+      if (e.key === "ArrowLeft") moveLeft();
+      if (e.key === "ArrowRight") moveRight();
+      if (e.key === "ArrowUp") jumpUp();
+    });
+    document.getElementById("left").addEventListener("click", () => { if (gameStarted) moveLeft(); });
+    document.getElementById("right").addEventListener("click", () => { if (gameStarted) moveRight(); });
+    document.getElementById("jump").addEventListener("click", () => { if (gameStarted) jumpUp(); });
+
+    function checkCollision() {
+      crocs.forEach(c => {
+        const cx = parseInt(c.el.style.left);
+        const cy = parseInt(c.el.style.top);
+        if (x < cx + 60 && x + 40 > cx && y < cy + 30 && y + 40 > cy) {
+          endGame(false);
+        }
+      });
+    }
+    function checkWin() { if (y < 20) endGame(true); }
+
+    function endGame(win) {
+      gameStarted = false;
+      if (win) {
+        message.innerText = "🎉 You Win! Chicken Dinner 🍗🤤";
+        createConfetti();
+        setInterval(drawConfetti, 20);
+      } else {
+        message.innerText = "💀 Oops! The crocs got you!";
+        resetBtn.style.display = "block";
+      }
+      message.style.display = "block";
+    }
+
+    function gameLoop() {
+      if (gameStarted) {
+        moveCrocs();
+        checkCollision();
+      }
+      requestAnimationFrame(gameLoop);
+    }
+
+    function startCountdown() {
+      let steps = ["Ready...", "Steady...", "Go!"];
+      let i = 0;
+      countdown.style.display = "block";
+      let interval = setInterval(() => {
+        countdown.innerText = steps[i];
+        i++;
+        if (i === steps.length) {
+          clearInterval(interval);
+          countdown.style.display = "none";
+          gameStarted = true;
+        }
+      }, 1000);
+    }
+
+    resetBtn.addEventListener("click", initGame);
+
+    // Start game
+    initGame();
+    gameLoop();
+  </script>
+</body>
+</html>
 
